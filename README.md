@@ -26,7 +26,7 @@ catkin_make
 - Install and compile this simulator in jackal_ws/src:
 ```
 cd src
-git clone https://github.com/rahulpeddi/multi-jackal-simulator
+git clone https://github.com/laurenbramblett/multi-jackal-apf
 cd ~/jackal_ws
 rosdep install --from-paths . --ignore-src
 catkin_make
