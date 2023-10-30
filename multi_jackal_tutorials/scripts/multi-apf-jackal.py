@@ -8,15 +8,15 @@ from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
 
 
-real_robot = True
+real_robot = False
 
 # Define the positions
 global pos, ori
-pos = [np.array([0., 0.]), np.array([0., 0.])]
+pos = [np.array([0., 10.]), np.array([0., 10.])]
 ori = [0., 0.]
 
 # Define the goal positions (if real robot, these are relative to odometry)
-goal = [np.array([1., 0.]), np.array([1., 0.])]
+goal = [np.array([10., 10.]), np.array([10., 10.])]
 
 # Callback function for the subscriber to get relative pose information (for real robot)
 def pos_cb(msg, args):
