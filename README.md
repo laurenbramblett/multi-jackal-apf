@@ -26,7 +26,7 @@ catkin_make
 - Install and compile this simulator in jackal_ws/src:
 ```
 cd src
-git clone https://github.com/rahulpeddi/multi-jackal-simulator
+git clone https://github.com/laurenbramblett/multi-jackal-apf
 cd ~/jackal_ws
 rosdep install --from-paths . --ignore-src
 catkin_make
@@ -58,6 +58,22 @@ look at the topics and TF tree.
 The starting point for simulating the robots. Contains launch, config, and world files.
 Starts up a Gazebo session and launches robots using `multi_jackal_base`.
 Example: `roslaunch multi_jackal_tutorials one_jackal.launch`.
+
+You can also move your jackals with the following python script after running a launch file such as the one above:
+`python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/multi-jackal-apf.py`
+
+### FOR CAPSTONE:
+Edit the following lines to change the goal or adjust initial parameters
+- real_robot = True (sets the pose to a relative odometry frame)
+- goal = [List of goals] (sets the goals for each robot. Length of list is determined by number of robots in the experiment. This goal will either be relative to the robots odometry or global frame depending on value of real_robot)
+- sub_names = [List of subscriber names] (defines the rostopic that the script will listen to for relative pose)
+- pub_names = [list of publisher names] (defines the rostopic that the script will publish velocity commands to)
+- fields = [Potential field initialization] (defines the constants that will tune how the robot moves)
+  - kappa_attr: the coefficient for how much the robot is attracted to a goal
+  - kappa_rep_obs: the coefficient for how much the robot is repulsed by an obstacle
+  - kappa_rep_veh: the coefficient for how much the robot is repulsed by another vehicle
+  - d0: the distance threshold for when the robot should move away from an obstacle
+  - d1: the distance threshold for when the robot should move away from another vehicle 
 
 ## multi_jackal_base
 Contains a single launch file that calls all other jackal components.
