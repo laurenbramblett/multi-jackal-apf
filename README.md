@@ -63,7 +63,7 @@ You can also move your jackals with the following python script after running a 
 `python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/multi-jackal-apf.py`
 
 ### FOR CAPSTONE:
-Edit the following lines to change the goal or adjust initial parameters
+Edit the following lines to change the goal or adjust initial parameters for "multi-jackal-apf.py"
 - real_robot = True (sets the pose to a relative odometry frame)
 - goal = [List of goals] (sets the goals for each robot. Length of list is determined by number of robots in the experiment. This goal will either be relative to the robots odometry or global frame depending on value of real_robot)
 - sub_names = [List of subscriber names] (defines the rostopic that the script will listen to for relative pose)
@@ -74,6 +74,16 @@ Edit the following lines to change the goal or adjust initial parameters
   - kappa_rep_veh: the coefficient for how much the robot is repulsed by another vehicle
   - d0: the distance threshold for when the robot should move away from an obstacle
   - d1: the distance threshold for when the robot should move away from another vehicle 
+
+#### ASTAR Instructions
+In five separate terminals, run the following - you can use a launch file to combine all the following but it is left separate for interpretation
+```
+roscore
+roslaunch multi_jackal_tutorials two_jackal_astar.launch
+gzclient
+python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/paths_run_astar.py
+python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/multi-jackal-apf-astar.py
+```
 
 ## multi_jackal_base
 Contains a single launch file that calls all other jackal components.
