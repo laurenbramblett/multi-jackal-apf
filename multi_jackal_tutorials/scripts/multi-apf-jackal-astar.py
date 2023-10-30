@@ -36,8 +36,8 @@ dict_init = {
     'startPose': [[30,30],[30,30]],
     'vels': [1, 1],
     'cityCoordinates': [[2,2],[1,1],[5, 10],[10,10]],
-    'numGenerations': 10,
-    'populationSize': 10,
+    'numGenerations': 20,
+    'populationSize': 20,
     'mutationRate': 0.1,
     'image_path': "", #"obstacleMap2.png",
     'new_run': True
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     template_pub = rospy.Publisher('string_msg', String, queue_size=1)
 
     # Create the potential fields in a loop
-    fields = [PotentialField(kappa_attr=1, kappa_rep_obs=10, kappa_rep_veh=10, d0=2.0, d1=3.0) for i in range(len(sub_names))]
+    fields = [PotentialField(kappa_attr=1, kappa_rep_obs=10, kappa_rep_veh=1.5, d0=2.0, d1=2.0) for i in range(len(sub_names))]
 
     # Create the rate
     rate = rospy.Rate(10)
@@ -95,6 +95,7 @@ if __name__ == '__main__':
             # Create the message
             dict_init['startPose'] = [[pos[i][0], pos[i][1]] for i in range(len(sub_names))]
             dict_msg = str(dict_init)
+            print(dict_msg)
             # Publish the message
             template_pub.publish(dict_msg)
 
@@ -104,8 +105,10 @@ if __name__ == '__main__':
             continue
         for i in range(len(sub_names)):
             if path_counter[i] >= len(paths[i]):
-                continue
-            goal = np.array(dict_init['cityCoordinates'][paths[i][path_counter[i]]])
+                goal = np.array(dict_init['startPose'][i])
+            else:
+                goal = np.array(paths[i][path_counter[i]])
+
             if not real_robot:
                 pos_hold = get_model_pose(sub_names[i])
                 pos[i]  = np.array([pos_hold.position.x, pos_hold.position.y])
@@ -113,14 +116,15 @@ if __name__ == '__main__':
                 ori[i] = euler_from_quaternion([pos_hold.orientation.x, pos_hold.orientation.y, pos_hold.orientation.z, pos_hold.orientation.w])[2]
             
             # Get the velocities   
+            max_speed = dict_init['vels'][i]
             if not real_robot:
-                linear_velocity[i], angular_velocity[i] = fields[i].get_velocities(pos[i], ori[i], goal, [], [pos[j] for j in range(len(sub_names)) if j != i], 1.0)
+                linear_velocity[i], angular_velocity[i] = fields[i].get_velocities(pos[i], ori[i], goal, [], [pos[j] for j in range(len(sub_names)) if j != i], max_speed)
             else: 
                 #TODO: transform other vehicle positions to be relative to the current vehicle
-                linear_velocity[i], angular_velocity[i] = fields[i].get_velocities(pos[i], ori[i], goal, [], [], 1.0)
+                linear_velocity[i], angular_velocity[i] = fields[i].get_velocities(pos[i], ori[i], goal, [], [], max_speed)
 
             # Check if the goal has been reached
-            if np.linalg.norm(pos[i] - goal) < 0.1:
+            if np.linalg.norm(pos[i] - goal) < 0.3:
                 path_counter[i] += 1
 
             # Print the velocities, goal, and position
@@ -134,12 +138,12 @@ if __name__ == '__main__':
 
         # Check if all goals have been reached
         if all([path_counter[i] >= len(paths[i]) for i in range(len(sub_names))]):
-            break
+            if all([np.linalg.norm(pos[i] - np.array(dict_init['startPose'][i])) < 0.1 for i in range(len(sub_names))]):
+                break
 
         # Create the message
         for i in range(len(sub_names)):
             msg = Twist()
-            # msg.data = [linear_velocity[i], angular_velocity[i]]
             msg.linear.x = linear_velocity[i]
             msg.angular.z = angular_velocity[i]
             # Publish the message

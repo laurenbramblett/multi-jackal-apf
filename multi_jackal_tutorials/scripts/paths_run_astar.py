@@ -12,6 +12,20 @@ global string_msg
 string_msg = {'new_run': False}
 random.seed(0) #Set seed to get same results every time
 
+# Initialize the dictionary for the environment
+# string_msg = {
+#     'numAgents': 2,
+#     'numCities': 4,
+#     'startPose': [[30,30],[30,30]],
+#     'vels': [1, 1],
+#     'cityCoordinates': [[2,2],[1,1],[1, 10],[10,10]],
+#     'numGenerations': 10,
+#     'populationSize': 10,
+#     'mutationRate': 0.1,
+#     'image_path': "",#"obstacleMap2.png",
+#     'new_run': True
+# }
+
 def string_callback(msg):  
     global string_msg  
     string_msg = eval(msg.data)
@@ -23,7 +37,7 @@ def load_image():
         image_data = np.array(image)
     except:
         print('Image not found')
-        image_data = np.zeros((50,50)) # Default empty image
+        image_data = np.ones((50,50))*255 # Default empty image
     return image_data
 
 # A* algorithm:
@@ -112,11 +126,11 @@ class AStar:
         paths = np.zeros((self.numCities, self.numAgents), dtype=int) - 1
         remainingCities = np.arange(0, self.numCities)
 
-        agent_cycle = cycle(range(self.numAgents))
+        # agent_cycle = cycle(range(self.numAgents))
         
         for _ in range(self.numCities):
             randomChoice = random.choice(range(len(remainingCities)))
-            agent = next(agent_cycle)
+            agent = random.choice(range(self.numAgents))
             
             # Find the next available slot for the agent
             available_slot = np.where(paths[:, agent] == -1)[0][0]
@@ -131,24 +145,26 @@ class AStar:
         for k in range(path.shape[1]):
             pathInds = path[:, k][path[:, k] >= 0]
             numCities = len(pathInds)
-            city2 = self.startPose[k]
-            for i in range(numCities):
+            for i in range(numCities+1):
                 if i == 0:
                     city1 = self.startPose[k]
                 else:
-                    city1 = self.cityCoordinates[pathInds[i - 1] - 1]
-                city2 = self.cityCoordinates[pathInds[i] - 1]
+                    city1 = self.cityCoordinates[pathInds[i - 1]]
+                if i == numCities:
+                    city2 = self.startPose[k]
+                else:
+                    city2 = self.cityCoordinates[pathInds[i]]
 
                 # Use cached results if available
                 path_key = (tuple(city1), tuple(city2))
                 if path_key in self.path_cache:
-                    dist = self.path_cache[path_key]
+                    dist = self.path_cache[path_key]["cost"]
                 else:
                     a_star_path = a_star(self.occupancy_grid, tuple(map(int, city1)), tuple(map(int, city2)))
                     if a_star_path is None:
                         return float('inf')
                     dist = len(a_star_path) / self.vels[k]
-                    self.path_cache[path_key] = dist
+                    self.path_cache[path_key] = {"cost": dist, "path": a_star_path}
 
                 totalDist[k] += dist
             
@@ -249,7 +265,8 @@ class AStar:
             self.population = offspring
     
     def publish_results(self):
-        bestPaths = []
+        bestPaths = [[] for i in range(self.numAgents)]
+        agentCities = [[] for i in range(self.numAgents)]
         for agent in range(self.numAgents):
             bestIndex = 0
             bestFitness = self.fitnessFunction(self.population[0])
@@ -258,10 +275,28 @@ class AStar:
                 if currentFitness < bestFitness:
                     bestIndex = i
                     bestFitness = currentFitness
-            bestPaths.append(list(self.population[bestIndex][:, agent][self.population[bestIndex][:, agent] > -1]))
+            # Get astar paths
+            agentCities[agent] = self.population[bestIndex][:, agent][self.population[bestIndex][:, agent] > -1]
+            for i in range(len(agentCities[agent]) + 1):
+                if i == 0:
+                    city1 = self.startPose[agent]
+                else:
+                    city1 = self.cityCoordinates[agentCities[agent][i - 1]]
+                if i == len(agentCities):
+                    city2 = self.startPose[agent]
+                else:
+                    city2 = self.cityCoordinates[agentCities[agent][i]]
+
+                # Use cached results - should always be available
+                path_key = (tuple(city1), tuple(city2))
+                if i == 0:
+                    bestPaths[agent].extend(self.path_cache[path_key]["path"])
+                else:
+                    bestPaths[agent].extend(self.path_cache[path_key]["path"][1:])
+
         # Print the best city-paths for each agent
         for agent in range(self.numAgents):
-            print(f'Agent {agent + 1} Path:', bestPaths[agent])
+            print(f'Agent {agent + 1} Path:', agentCities[agent])
 
         return bestPaths
 
