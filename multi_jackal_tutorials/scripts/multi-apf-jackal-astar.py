@@ -23,7 +23,6 @@ def pos_cb(msg, args):
     global pos, ori, pos_received
     pos[args]    = np.array([msg.pose.pose.position.x, msg.pose.pose.position.y])
     ori[args]    = euler_from_quaternion([msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w])[2]
-    rospy.loginfo("Position: %f, %f", pos[args][0], pos[args][1])
     pos_received = True
 
 def path_cb(msg):
@@ -124,7 +123,7 @@ if __name__ == '__main__':
             if np.linalg.norm(pos[i] - goal) < 0.1:
                 path_counter[i] += 1
 
-            # Print the velocities
+            # Print the velocities, goal, and position
             print("--------------------")
             print("Vehicle: ", i)
             print("Linear velocity: ", linear_velocity[i])
