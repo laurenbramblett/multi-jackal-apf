@@ -85,6 +85,25 @@ python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/paths_run_astar.p
 python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/multi-jackal-apf-astar.py
 ```
 
+
+#### Mapping Instructions (for simulator):
+In three terminals, run the following:
+```
+roslaunch jackal_gazebo jackal_world.launch config:=front_laser
+roslaunch jackal_navigation gmapping_demo.launch 
+roslaunch jackal_viz view_robot.launch config:=gmapping
+```
+- The first roslaunch command launches gazebo and loads the `jackal_world` racetrack. Make sure the configuration is `front_laser` or you will have no tool to map with (i.e. in this case, LiDAR). 
+- The second roslaunch command runs the gmapping_demo, which stores your LiDAR scans into an occupancy map. You can adjust things like the maximum range and the rate at which the map updates in the `<jackal-ws>/src/jackal_navigation/launch/include/gmapping.launch` file. If it is not already, change the `param name="map_update_interval"` to something less than 1 (recommend 0.5).
+- The third roslaunch command allows you to view the resulting map. When you are satisfied run the following command in a separate terminal which will save your map as mymap (change the directory of either your terminal or the mymap path to change the location it saves):
+```
+rosrun map_server map_saver -f mymap
+```
+
+#### Mapping Instructions (for turtlebot):
+Please follow the similar instructions on the real turtlebot [here](https://learn.turtlebot.com/2015/02/01/11/)
+
+
 ## multi_jackal_base
 Contains a single launch file that calls all other jackal components.
 
