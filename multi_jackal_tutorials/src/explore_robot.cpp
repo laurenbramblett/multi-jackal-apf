@@ -103,10 +103,10 @@ public:
     }
 
     void get_frontier_centroids(std::vector<std::pair<int, int>>& frontier_points, std::vector<std::pair<int, int>>& frontier_centroids) {
+        int num_frontier_points = 0;
         for (const auto& point : frontier_points) {
             int x = point.first;
             int y = point.second;
-            int num_frontier_points = 0;
             int x_sum = 0;
             int y_sum = 0;
             for (int i = std::max(1, x - 1); i <= std::min(static_cast<int>(grid.size()) - 2, x + 1); ++i) {
