@@ -104,6 +104,22 @@ rosrun map_server map_saver -f mymap
 Please follow the similar instructions on the real turtlebot [here](https://learn.turtlebot.com/2015/02/01/11/)
 
 
+#### ASTAR Instructions for path planning given pgm --> from saved map
+In two terminals run the following:
+```
+roslaunch astar astar_capstone.launch
+python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/run_astar_rviz.py 
+```
+You can run this in conjunction with the `multi-jackal-apf-astar.py` but I have included an example dictionary at the top and commented out the subscriber on line 281. You would just need to comment/uncomment these things and run the python file to get the robot to move to these locations.
+
+TODO: Make identifying location of cities/tasks easier by storing 2D Nav goals in Rviz rather than putting them in via array in dictionary 
+
+You can play with the Astar package by running
+```
+roslaunch astar astar.launch
+```
+An rviz screen will pop up and you can select a pose estimate in the top toolbar by clicking the tool and then selecting a location on the map. Then select a 2D Nav Goal similarly and it should show you the resultant astar path.
+
 ## multi_jackal_base
 Contains a single launch file that calls all other jackal components.
 
