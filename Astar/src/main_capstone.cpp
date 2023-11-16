@@ -114,8 +114,8 @@ void TargetPointtCallback(const geometry_msgs::PoseStamped& msg)
         start_flag = true;
     }
 
-//    ROS_INFO("targetPoint: %f %f %d %d", msg.pose.position.x, msg.pose.position.y,
-//             targetPoint.x, targetPoint.y);
+   ROS_INFO("targetPoint: %f %f %d %d", msg.pose.position.x, msg.pose.position.y,
+            targetPoint.x, targetPoint.y);
 }
 
 //-------------------------------- Main function ---------------------------------//

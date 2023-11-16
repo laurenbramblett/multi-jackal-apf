@@ -21,7 +21,7 @@ private:
     double HEADING_WEIGHT;
 
 public:
-    RobotExplorer(const std::vector<int>& map_size, const std::vector<double>& start_position, int lidar_range = 5, int num_rays = 15)
+    RobotExplorer(const std::vector<int>& map_size, const std::vector<double>& start_position, int lidar_range = 1, int num_rays = 15)
         : grid(map_size[0], std::vector<int>(map_size[1], UNKNOWN)), position(start_position), lidar_range(lidar_range), num_rays(num_rays), HEADING_WEIGHT(0.5) {
         grid[static_cast<int>(position[0])][static_cast<int>(position[1])] = FREE;
         std::cout << "Map size: " << grid.size() << ", " << grid[0].size() << std::endl;
@@ -91,7 +91,7 @@ public:
                         double angle = position[2] + k * 2 * M_PI / num_rays;
                         int x = static_cast<int>(i + lidar_range * std::cos(angle));
                         int y = static_cast<int>(j + lidar_range * std::sin(angle));
-                        if (x >= 0 && x < grid.size() && y >= 0 && y < grid[0].size() && grid[x][y] == UNKNOWN) {
+                        if (x >= 0 && x < grid.size() && y >= 0 && y < grid[0].size() && grid[x][y] == FREE) {
                             // grid[i][j] = FRONTIER;
                             frontier_points.push_back({i, j});
                             break;
@@ -126,14 +126,15 @@ public:
     }
 
     void select_frontier(std::vector<std::pair<int, int>>& frontier_points, std::pair<int, int>& selected_frontier) {
-        double min_distance = std::numeric_limits<double>::max();
+        double max_distance = 0.0;
         for (const auto& centroid : frontier_points) {
             double distance = std::sqrt(std::pow(position[0] - centroid.first, 2) + std::pow(position[1] - centroid.second, 2));
-            if (distance > min_distance) {
-                min_distance = distance;
+            if (distance > max_distance) {
+                max_distance = distance;
                 selected_frontier = centroid;
             }
         }
+        std::cout << "Selected frontier: " << selected_frontier.first << ", " << selected_frontier.second << std::endl;
     }
 
     void compute_potential_field(std::pair<int, int>& selected_frontier, std::vector<double>& potential_field) {
@@ -171,8 +172,8 @@ public:
         double heading_change = std::fmod((heading - position[2] + M_PI), (2 * M_PI - M_PI));
 
         double vel = std::cos(heading_change);
-        if (vel>1){
-            vel = 1;
+        if (vel>2){
+            vel = 2;
         }
         double x = position[0] + std::cos(position[2]) * vel;
         double y = position[1] + std::sin(position[2]) * vel;

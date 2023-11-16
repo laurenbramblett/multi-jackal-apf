@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Control multiple jackals using APF"""
 
 from potential_field_class import PotentialField, get_model_pose
@@ -28,21 +29,24 @@ def pos_cb(msg, args):
 def path_cb(msg):
     global paths
     paths = eval(msg.data)    
+    print(paths)
 
 # Initialize the dictionary for the environment
-dict_init = {
+string_msg = {
     'numAgents': 2,
-    'numCities': 4,
-    'startPose': [[30,30],[30,30]],
-    'vels': [1, 1],
-    'cityCoordinates': [[2,2],[1,1],[5, 10],[10,10]],
-    'numGenerations': 20,
-    'populationSize': 20,
+    'numCities': 5,
+    'startPose': [[0,0],[0,1]],
+    'vels': [1,1],
+    'cityCoordinates': [[2,3],[2,5],[-2,-0.5],[14,3],[-10,2]],
+    'numGenerations': 10,
+    'populationSize': 10,
     'mutationRate': 0.1,
-    'image_path': "", #"obstacleMap2.png",
     'new_run': True
 }
-    
+
+# Initialize dictionary
+dict_init = string_msg
+
 if real_robot:
     #TODO_CAPSTONE: change the topic names to be relative to the turtlebot
     sub_names = ['jackal0/odometry/local_filtered', 'jackal1/odometry/local_filtered']

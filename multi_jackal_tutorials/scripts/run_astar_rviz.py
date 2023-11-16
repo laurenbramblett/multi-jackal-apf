@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -14,17 +15,17 @@ string_msg = {'new_run': False}
 random.seed(0) #Set seed to get same results every time
 
 # Initialize the dictionary for the environment
-string_msg = {
-    'numAgents': 1,
-    'numCities': 2,
-    'startPose': [[2,4]],
-    'vels': [1],
-    'cityCoordinates': [[2,3],[2,5]],
-    'numGenerations': 10,
-    'populationSize': 10,
-    'mutationRate': 0.1,
-    'new_run': True
-}
+# string_msg = {
+#     'numAgents': 1,
+#     'numCities': 5,
+#     'startPose': [[2,4]],
+#     'vels': [1],
+#     'cityCoordinates': [[2,3],[2,5],[-2,-0.5],[14,3],[-10,2]],
+#     'numGenerations': 10,
+#     'populationSize': 10,
+#     'mutationRate': 0.1,
+#     'new_run': True
+# }
 
 def string_callback(msg):  
     global string_msg  
@@ -64,7 +65,7 @@ class GA:
                 self.path_cost = 0
             else:
                 self.path_cost += np.linalg.norm(self.path_from_msg[idx-1,:]-self.path_from_msg[idx,:])
-            print(pose.pose.position.x, pose.pose.position.y)
+            # print(pose.pose.position.x, pose.pose.position.y)
 
     def publish_start(self,x,y,sub):
         start = PoseWithCovarianceStamped()
@@ -138,14 +139,14 @@ class GA:
                     while not self.path_received and iters < 10:
                         self.publish_start(city1[0],city1[1],self.start_pub)
                         self.publish_target(city2[0],city2[1],self.target_pub)
-                        iters += 1
                         self.rate.sleep()
+                        # rospy.wait_for_message("/nav_path",Path)
                     if iters >= 10:
                         print("Path not received")
                         return float('inf')
                     self.path_received = False
                     dist = self.path_cost / self.vels[k]
-                    self.path_cache[path_key] = {"cost": dist, "path": self.path_from_msg}
+                    self.path_cache[path_key] = {"cost": dist, "path": self.path_from_msg.tolist()}
 
                 totalDist[k] += dist
             
@@ -267,6 +268,7 @@ class GA:
                 path_key = (tuple(city1), tuple(city2))
                 if i == 0:
                     bestPaths[agent].extend(self.path_cache[path_key]["path"])
+                    print(bestPaths[agent])
                 else:
                     bestPaths[agent].extend(self.path_cache[path_key]["path"][1:])
 
@@ -278,7 +280,7 @@ class GA:
 
 def main():
     rospy.init_node('string_subscriber')
-    # rospy.Subscriber('string_msg', String, string_callback)
+    rospy.Subscriber('string_msg', String, string_callback)
     pub = rospy.Publisher('best_paths', String, queue_size=10)
     rate = rospy.Rate(10)
     best = []
