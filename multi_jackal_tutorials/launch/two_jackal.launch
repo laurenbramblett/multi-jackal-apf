@@ -26,13 +26,15 @@
     <arg name="config"        value="$(arg config0)"/>
     <arg name="config_id"     value="$(arg config0_id)"/>
     <arg name="use_move_base" value="true"/>
+    <arg name="x"             value="1"/>
   </include>
   <include file="$(find multi_jackal_base)/launch/jackal_base.launch">
     <arg name="ns"            value="$(arg ns1)"/>
     <arg name="config"        value="$(arg config1)"/>
     <arg name="config_id"     value="$(arg config1_id)"/>
     <arg name="use_move_base" value="true"/>
-    <arg name="x"             value="2"/>
+    <arg name="x"             value="5"/>
+    <arg name="yaw"           value="3.14159"/>
   </include>
   
   <!-- View in RVIZ. -->

@@ -79,10 +79,10 @@ Edit the following lines to change the goal or adjust initial parameters for "mu
 In five separate terminals, run the following - you can use a launch file to combine all the following but it is left separate for interpretation
 ```
 roscore
-roslaunch multi_jackal_tutorials two_jackal_astar.launch
+roslaunch multi_jackal_tutorials two_jackal.launch
 gzclient
 python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/paths_run_astar.py
-python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/multi-jackal-apf-astar.py
+python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/multi-jackal-apf-simple.py
 ```
 
 

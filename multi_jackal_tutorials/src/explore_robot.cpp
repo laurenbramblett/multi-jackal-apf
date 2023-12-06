@@ -87,14 +87,13 @@ public:
         for (int i = 0; i < grid.size(); ++i) {
             for (int j = 0; j < grid[0].size(); ++j) {
                 if (grid[i][j] == FREE) {
-                    for (int k = 0; k < num_rays; ++k) {
-                        double angle = position[2] + k * 2 * M_PI / num_rays;
-                        int x = static_cast<int>(i + lidar_range * std::cos(angle));
-                        int y = static_cast<int>(j + lidar_range * std::sin(angle));
-                        if (x >= 0 && x < grid.size() && y >= 0 && y < grid[0].size() && grid[x][y] == FREE) {
-                            // grid[i][j] = FRONTIER;
-                            frontier_points.push_back({i, j});
-                            break;
+                    for (int k = 0; k < 2; k ++) {
+                        for (int l = 0; l < 2; l ++) {
+                            int x = i + k;
+                            int y = j + l;
+                            if (x >= 0 && x < grid.size() && y >= 0 && y < grid[0].size() && grid[x][y] == FREE) {
+                                frontier_points.push_back({i, j});
+                            }
                         }
                     }
                 }
