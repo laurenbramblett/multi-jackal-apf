@@ -197,34 +197,35 @@ class AStar:
             child1[crossoverPoint1:crossoverPoint2, k] = parent2[crossoverPoint1:crossoverPoint2, k]
             child2[crossoverPoint1:crossoverPoint2, k] = parent1[crossoverPoint1:crossoverPoint2, k]
 
+        return child1, child2
+
+    def repairChild(self, child):
+        numAgents = child.shape[1]
+        numCities = child.shape[0]
         # Remove duplicates
         for agent in range(numAgents):
             for c in range(numCities):
-                whichIdx1 = np.where(child1[:, agent] == c)[0]
-                whichIdx2 = np.where(child2[:, agent] == c)[0]
-
-                if len(whichIdx1) > 1:
-                    emptyIdx = random.choice(whichIdx1)
-                    child1[emptyIdx, agent] = -1
-
-                if len(whichIdx2) > 1:
-                    emptyIdx = random.choice(whichIdx2)
-                    child2[emptyIdx, agent] = -1
-
+                whichIdx = np.where(child[:, agent] == c)[0]
+                if len(whichIdx) > 1:
+                    emptyIdx = random.choice(whichIdx)
+                    child[emptyIdx, agent] = -1
+        
         # Add missing cities
-        for agent in range(numAgents):
-            for c in range(numCities):
-                if np.sum(child1 == c) == 0:
-                    emptySlots = np.where(child1[:, agent] == -1)[0]
-                    fillIdx = random.choice(emptySlots)
-                    child1[fillIdx, agent] = c
-
-                if np.sum(child2 == c) == 0:
-                    emptySlots = np.where(child2[:, agent] == -1)[0]
-                    fillIdx = random.choice(emptySlots)
-                    child2[fillIdx, agent] = c
-
-        return child1, child2
+        for c in range(numCities):
+            if np.sum(child == c) == 0:
+                emptyAgents = np.where(np.sum(child == -1, axis=0) > 0)[0]
+                agentChoice = random.choice(emptyAgents)
+                emptySlots = np.where(child[:,agentChoice] == -1)[0]
+                fillIdx = random.choice(emptySlots)
+                child[fillIdx, agentChoice] = c
+            if np.sum(child == c) > 1:
+                assignedAgents = np.where(np.sum(child == c, axis=0) > 0)[0]
+                keepAgent = random.choice(assignedAgents)
+                for agent in assignedAgents:
+                    if agent != keepAgent:
+                        whichIdx = np.where(child[:, agent] == c)[0]
+                        child[whichIdx, agent] = -1
+        return child
     
     # Define the fitness function
     def fitnessFunction(self, x):
@@ -253,6 +254,8 @@ class AStar:
                 parent1 = self.population[selectedIndices[i]]
                 parent2 = self.population[selectedIndices[i + 1]]
                 child1, child2 = self.orderCrossover(parent1, parent2)
+                child1 = self.repairChild(child1)
+                child2 = self.repairChild(child2)
                 offspring[i] = child1
                 offspring[i + 1] = child2
 
