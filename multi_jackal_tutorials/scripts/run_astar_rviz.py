@@ -279,27 +279,28 @@ class GA:
         for agent in range(self.numAgents):
             print(f'Agent {agent + 1} Path:', agentCities[agent])
 
-        return bestPaths
+        return bestPaths,agentCities
 
 def main():
     rospy.init_node('string_subscriber')
     rospy.Subscriber('string_msg', String, string_callback)
-    pub = rospy.Publisher('best_paths', String, queue_size=10)
+    path_pub = rospy.Publisher('best_paths', String, queue_size=1,latch=True)
+    goal_pub = rospy.Publisher('assigned_tasks', String, queue_size=1,latch=True)
     rate = rospy.Rate(10)
-    best = []
     best_paths = String()
+    assigned_tasks = String()
     while not rospy.is_shutdown():
         if string_msg['new_run']:
             # image_data = load_image()
             ga_path = GA(rate)
             ga_path.run_ga()
-            best = ga_path.publish_results()
+            best_path,cities = ga_path.publish_results()
             # Publish the best paths
-            best_paths.data = str(best)
-            pub.publish(best_paths)
+            best_paths.data = str(best_path)
+            assigned_tasks.data = str(cities)
+            path_pub.publish(best_paths)
+            goal_pub.publish(assigned_tasks)
             string_msg['new_run'] = False   
-        elif not len(best)<1:
-            pub.publish(best_paths)
         else:
             pass
         rate.sleep()

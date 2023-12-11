@@ -107,7 +107,7 @@ Please follow the similar instructions on the real turtlebot [here](https://lear
 #### ASTAR Instructions for path planning given pgm --> from saved map
 In four terminals run the following:
 ```
-roslaunch multi_jackal_tutorials two_jackals_astar.launch
+roslaunch multi_jackal_tutorials two_jackal_astar.launch
 roslaunch astar astar_capstone.launch
 python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/run_astar_rviz.py 
 python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/multi-apf-jackal-astar.py
