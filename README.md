@@ -93,6 +93,11 @@ roslaunch jackal_gazebo jackal_world.launch config:=front_laser
 roslaunch jackal_navigation gmapping_demo.launch 
 roslaunch jackal_viz view_robot.launch config:=gmapping
 ```
+TODO: Change the gmapping configuration in the gmapping launch file to use the gazebo state to map. There is an example of the world pose being published in `$(find multi_jackal_tutorials)/scripts/publish_global_pose.py` and in the gmapping launch file change in `$(find multi_jackal_tutorials)/multi_gmapping.launch`. You do not need the namespaces though and the front scan topic can remain the default as in the single robot workspace (just the jackal_ws) `$(find jackal_navigation)/launch/include/gmapping.launch` 
+
+Note: The $(find ...) points to a ros package. This should be the folder name inside either jackal_ws or multi_jackal_ws.
+
+
 - The first roslaunch command launches gazebo and loads the `jackal_world` racetrack. Make sure the configuration is `front_laser` or you will have no tool to map with (i.e. in this case, LiDAR). 
 - The second roslaunch command runs the gmapping_demo, which stores your LiDAR scans into an occupancy map. You can adjust things like the maximum range and the rate at which the map updates in the `<jackal-ws>/src/jackal_navigation/launch/include/gmapping.launch` file. If it is not already, change the `param name="map_update_interval"` to something less than 1 (recommend 0.5).
 - The third roslaunch command allows you to view the resulting map. When you are satisfied run the following command in a separate terminal which will save your map as mymap (change the directory of either your terminal or the mymap path to change the location it saves):
@@ -111,7 +116,7 @@ roslaunch multi_jackal_tutorials two_jackal_navstack.launch
 roslaunch astar astar_capstone.launch
 rosrun multi_jackal_tutorials multi-apf-jackal-navstack.py
 ```
-You can run this in conjunction with the `multi-jackal-apf-astar.py` but I have included an example dictionary at the top and commented out the subscriber on line 281. You would just need to comment/uncomment these things and run the python file to get the robot to move to these locations.
+You can now use move_base to move the jackals to coordinate goals. I have tested the solution with the current implementation. Both robots now map using gmapping. Gmapping calls a published pose from the gazebo states. All launch files also publish a series of transforms or run python files in order to publish the needed topics. I double checked and the astar is also path planning from the initial locations -- I also made sure that the robot is truly arriving at the right location -- I think the previous error was potentially user error or a pgm mapping issue. It should be solved in this iteration. 
 
 TODO: Make identifying location of cities/tasks easier by storing 2D Nav goals in Rviz rather than putting them in via array in dictionary 
 

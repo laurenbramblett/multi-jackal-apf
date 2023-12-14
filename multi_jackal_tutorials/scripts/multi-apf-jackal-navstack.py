@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Control multiple jackals using APF"""
 
-from potential_field_class import PotentialField, get_model_pose
+from potential_field_class import get_model_pose
 import rospy
 import numpy as np
 from geometry_msgs.msg import Twist, PoseStamped
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
 from std_msgs.msg import String
+from actionlib_msgs.msg import GoalID
+import actionlib
 
 
 real_robot = False
@@ -76,14 +78,14 @@ if __name__ == '__main__':
     # Create the path callback
     rospy.Subscriber('assigned_tasks', String, path_cb)
 
-    # Create the velocity publishers
+    # Create the goal publishers
     pubs = [rospy.Publisher(pub_names[i], PoseStamped, queue_size=1) for i in range(len(pub_names))]
-
+    pub_cancel_goal = [rospy.Publisher(sub_names[i] + 'move_base/cancel', GoalID, queue_size=1) for i in range(len(sub_names))]
     # Publisher for the astar path planner
     template_pub = rospy.Publisher('string_msg', String, queue_size=1,latch=True)
 
     # Create the potential fields in a loop
-    fields = [PotentialField(kappa_attr=1, kappa_rep_obs=10, kappa_rep_veh=1.5, d0=2.0, d1=2.0) for i in range(len(sub_names))]
+    # fields = [PotentialField(kappa_attr=1, kappa_rep_obs=10, kappa_rep_veh=1.5, d0=2.0, d1=2.0) for i in range(len(sub_names))]
 
     # Create the rate
     rate = rospy.Rate(10)
@@ -139,6 +141,9 @@ if __name__ == '__main__':
             if np.linalg.norm(pos[i] - goal) < 0.5:
                 path_counter[i] += 1
                 new_goal[i] = True
+                # Cancel the goal
+                cancel_msg = GoalID()
+                pub_cancel_goal[i].publish(cancel_msg)
                 
 
             # Print the velocities, goal, and position
