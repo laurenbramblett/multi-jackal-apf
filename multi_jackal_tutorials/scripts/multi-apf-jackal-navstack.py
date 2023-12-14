@@ -4,7 +4,7 @@
 from potential_field_class import PotentialField, get_model_pose
 import rospy
 import numpy as np
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, PoseStamped
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion
 from std_msgs.msg import String
@@ -31,6 +31,16 @@ def path_cb(msg):
     paths = eval(msg.data)    
     print(paths)
 
+def publish_goal(goal,pub,agent):
+    msg = PoseStamped()
+    msg.header.frame_id = "map"
+    msg.pose.position.x = goal[0]
+    msg.pose.position.y = goal[1]
+    msg.pose.orientation.w = 1.0
+    pub.publish(msg)
+    print("Published goal for agent {}".format(agent))
+
+
 # Initialize the dictionary for the environment
 string_msg = {
     'numAgents': 2,
@@ -55,7 +65,7 @@ if real_robot:
     subs = [rospy.Subscriber(sub_names[i], Odometry, pos_cb, (i)) for i in range(len(sub_names))]
 else:
     sub_names = ['jackal0', 'jackal1']
-    pub_names = ['jackal0/jackal_velocity_controller/cmd_vel', 'jackal1/jackal_velocity_controller/cmd_vel']
+    pub_names = ['jackal0/move_base_simple/goal', 'jackal1/move_base_simple/goal']
 
 
 if __name__ == '__main__':
@@ -64,10 +74,10 @@ if __name__ == '__main__':
     rospy.init_node('multi_apf_jackal')
 
     # Create the path callback
-    rospy.Subscriber('best_paths', String, path_cb)
+    rospy.Subscriber('assigned_tasks', String, path_cb)
 
     # Create the velocity publishers
-    pubs = [rospy.Publisher(pub_names[i], Twist, queue_size=1) for i in range(len(pub_names))]
+    pubs = [rospy.Publisher(pub_names[i], PoseStamped, queue_size=1) for i in range(len(pub_names))]
 
     # Publisher for the astar path planner
     template_pub = rospy.Publisher('string_msg', String, queue_size=1,latch=True)
@@ -82,7 +92,8 @@ if __name__ == '__main__':
     linear_velocity  = [0, 0]
     angular_velocity = [0, 0]
     path_counter     = [0, 0]
-    iter = 0
+    iter             = 0
+    new_goal         = [True, True] 
 
     # Main loop
     while not rospy.is_shutdown():
@@ -104,7 +115,7 @@ if __name__ == '__main__':
                 dict_msg = str(dict_init)
                 # Publish the message
                 template_pub.publish(dict_msg)
-                iter += 1
+
 
         # Check if the paths are published by astar node
         if len(paths) < 1:
@@ -114,31 +125,25 @@ if __name__ == '__main__':
             if path_counter[i] >= len(paths[i]):
                 goal = np.array(dict_init['startPose'][i])
             else:
-                goal = np.array(paths[i][path_counter[i]])
+                goal = np.array(dict_init['cityCoordinates'][paths[i][path_counter[i]]])
+            
+            if new_goal[i]:
+                publish_goal(goal,pubs[i],i)
+                new_goal[i] = False
 
             if not real_robot:
                 pos_hold = get_model_pose(sub_names[i])
                 pos[i]  = np.array([pos_hold.position.x, pos_hold.position.y])
-                # Change orientation from quaternion to euler
-                ori[i] = euler_from_quaternion([pos_hold.orientation.x, pos_hold.orientation.y, pos_hold.orientation.z, pos_hold.orientation.w])[2]
             
-            # Get the velocities   
-            max_speed = dict_init['vels'][i]
-            if not real_robot:
-                linear_velocity[i], angular_velocity[i] = fields[i].get_velocities(pos[i], ori[i], goal, [], [pos[j] for j in range(len(sub_names)) if j != i], max_speed)
-            else: 
-                #TODO: transform other vehicle positions to be relative to the current vehicle
-                linear_velocity[i], angular_velocity[i] = fields[i].get_velocities(pos[i], ori[i], goal, [], [], max_speed)
-
             # Check if the goal has been reached
-            if np.linalg.norm(pos[i] - goal) < 0.3:
+            if np.linalg.norm(pos[i] - goal) < 0.5:
                 path_counter[i] += 1
+                new_goal[i] = True
+                
 
             # Print the velocities, goal, and position
             print("--------------------")
             print("Vehicle: ", i)
-            print("Linear velocity: ", linear_velocity[i])
-            print("Angular velocity: ", angular_velocity[i])
             print("Goal: ", goal)
             print("Position: ", pos[i])
             print("--------------------")
@@ -147,14 +152,6 @@ if __name__ == '__main__':
         if all([path_counter[i] >= len(paths[i]) for i in range(len(sub_names))]):
             if all([np.linalg.norm(pos[i] - np.array(dict_init['startPose'][i])) < 0.1 for i in range(len(sub_names))]):
                 break
-
-        # Create the message
-        for i in range(len(sub_names)):
-            msg = Twist()
-            msg.linear.x = linear_velocity[i]
-            msg.angular.z = angular_velocity[i]
-            # Publish the message
-            pubs[i].publish(msg)
         
         # Sleep
         rate.sleep()

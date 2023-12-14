@@ -9,7 +9,7 @@
     jackal_gazebo/launch/jackal_world.launch
     jackal_base/launch/base.launch
   -->
-
+  <xacro:arg name="namespace"                      default="jackal0" />
   <!-- Macros to generate standoffs for offset payload mounting. -->
   <xacro:include filename="accessories/standoffs.urdf.xacro" />
 

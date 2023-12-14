@@ -297,7 +297,7 @@ def main():
             best_path,cities = ga_path.publish_results()
             # Publish the best paths
             best_paths.data = str(best_path)
-            assigned_tasks.data = str(cities)
+            assigned_tasks.data = str([cities[i].tolist() for i in range(len(cities))])
             path_pub.publish(best_paths)
             goal_pub.publish(assigned_tasks)
             string_msg['new_run'] = False   

@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+
+<!-- Launches Jackal Gazebo simulation in an empty world. -->
+
+<launch>
+  <arg name="gui"        default="false"/>
+  <arg name="rviz"       default="true"/>
+  <arg name="ns0"        default="jackal0"/>
+  <arg name="ns1"        default="jackal1"/>
+  <arg name="config0"    default="front_laser"/>
+  <arg name="config0_id" default="0"/>
+  <arg name="config1"    default="front_laser"/>
+  <arg name="config1_id" default="1"/>
+  <arg name="world"      default="empty.world"/>
+
+  <!-- Start Gazebo with an empty world. -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui"          value="$(arg gui)"/>	
+    <arg name="world_name"   value="$(find multi_jackal_tutorials)/worlds/$(arg world)"/>
+  </include>
+  
+  <!-- Spawn the robots. -->
+  <include file="$(find multi_jackal_base)/launch/jackal_base.launch">
+    <arg name="ns"            value="$(arg ns0)"/>
+    <arg name="config"        value="$(arg config0)"/>
+    <arg name="config_id"     value="$(arg config0_id)"/>
+    <arg name="use_move_base" value="true"/>
+    <arg name="x"             value="0"/>
+  </include>
+  <include file="$(find multi_jackal_base)/launch/jackal_base.launch">
+    <arg name="ns"            value="$(arg ns1)"/>
+    <arg name="config"        value="$(arg config1)"/>
+    <arg name="config_id"     value="$(arg config1_id)"/>
+    <arg name="use_move_base" value="true"/>
+    <arg name="x"             value="5"/>
+    <arg name="yaw"           value="3.14159"/>
+  </include>
+  
+  <!--Transform frame id for scanners-->
+  <node pkg="multi_jackal_description" type="translate_frame_id.py" name="translate_frame_id" output="screen"/>
+  <node pkg="multi_jackal_tutorials" type="publish_global_pose.py" name="publish_global_pose" output="screen"/>
+
+  <!--Transform front scanners for map-->
+  <node pkg="tf" type="static_transform_publisher" name="tf0_laser" args="0 0 0.3 0 0 0 /$(arg ns0)/base_link /$(arg ns0)/laser_scan 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="tf1_laser" args="0 0 0.3 0 0 0 /$(arg ns1)/base_link /$(arg ns1)/laser_scan 100"/>
+
+  <!--- Run gmapping -->
+  <include file="$(find multi_jackal_nav)/launch/multi_gmapping.launch" ns="$(arg ns0)">
+    <arg name="scan_topic"    value="front/scan_v2" />
+    <arg name="namespace"     value="$(arg ns0)" />
+  </include>
+
+    <!--- Run gmapping -->
+  <include file="$(find multi_jackal_nav)/launch/multi_gmapping.launch" ns="$(arg ns1)" >
+    <arg name="scan_topic"    value="front/scan_v2" />
+    <arg name="namespace"     value="$(arg ns1)" />
+  </include>
+
+  <include file="$(find multi_jackal_nav)/launch/multi_gmapping.launch" ns="$(arg ns1)">
+    <arg name="scan_topic"    value="$(arg ns1)/front/scan_v2" />
+  </include>
+
+  <!-- <node pkg="tf" type="static_transform_publisher" name="tf0_map" args="0 0 0.149 0 0 0 /$(arg ns0)/base_link /$(arg ns0)/map 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="tf1_map" args="0 0 0.149 0 0 0 /$(arg ns1)/base_link /$(arg ns1)/map 100"/> -->
+
+  <!-- View in RVIZ. -->
+  <group if="$(arg rviz)">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find multi_jackal_tutorials)/rviz/two_jackal.rviz" >
+      <remap from="/move_base_simple/goal" to="/$(arg ns0)/move_base_simple/goal"/>
+    </node>
+  </group>
+</launch>

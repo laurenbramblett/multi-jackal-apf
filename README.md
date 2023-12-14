@@ -107,10 +107,9 @@ Please follow the similar instructions on the real turtlebot [here](https://lear
 #### ASTAR Instructions for path planning given pgm --> from saved map
 In four terminals run the following:
 ```
-roslaunch multi_jackal_tutorials two_jackal_astar.launch
+roslaunch multi_jackal_tutorials two_jackal_navstack.launch
 roslaunch astar astar_capstone.launch
-python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/run_astar_rviz.py 
-python3 ~/<multi-jackal-ws>/src/multi_jackal_tutorials/scripts/multi-apf-jackal-astar.py
+rosrun multi_jackal_tutorials multi-apf-jackal-navstack.py
 ```
 You can run this in conjunction with the `multi-jackal-apf-astar.py` but I have included an example dictionary at the top and commented out the subscriber on line 281. You would just need to comment/uncomment these things and run the python file to get the robot to move to these locations.
 
