@@ -110,13 +110,15 @@ Please follow the similar instructions on the real turtlebot [here](https://lear
 
 
 #### ASTAR Instructions for path planning given pgm --> from saved map
-In four terminals run the following:
+In three terminals run the following:
 ```
 roslaunch multi_jackal_tutorials two_jackal_navstack.launch
 roslaunch astar astar_capstone.launch
 rosrun multi_jackal_tutorials multi-apf-jackal-navstack.py
 ```
 You can now use move_base to move the jackals to coordinate goals. I have tested the solution with the current implementation. Both robots now map using gmapping. Gmapping calls a published pose from the gazebo states. All launch files also publish a series of transforms or run python files in order to publish the needed topics. I double checked and the astar is also path planning from the initial locations -- I also made sure that the robot is truly arriving at the right location -- I think the previous error was potentially user error or a pgm mapping issue. It should be solved in this iteration. 
+
+NOTE: The move base can be finicky so rerun if it gets stuck
 
 TODO: Make identifying location of cities/tasks easier by storing 2D Nav goals in Rviz rather than putting them in via array in dictionary 
 
